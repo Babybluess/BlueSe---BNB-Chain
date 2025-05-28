@@ -8,11 +8,17 @@ BlueSe reimagines social networking by integrating the power of blockchain and D
 
 ## 🚀 Features: Social Interactions Reinvented with Ownership and Transparency
 📝 Create Post: Publish securely signed content, stored and verified on-chain.
+
 ❤️ Like / Unlike Post: Engage authentically, backed by a stake-based interaction model.
+
 🚩 Report Post: Community moderation with on-chain verification and staking to prevent abuse.
+
 💬 Comment on Post: Foster meaningful discussions, tied to real user identities.
+
 🤝 Add Friend: Build connections through trust and decentralized identity.
+
 🛠️ Edit Profile: Update your personal data using 6-key multi-authentication, ensuring only the rightful owner can make changes.
+
 These features bring a transparent, tamper-proof, and self-governing social platform where community interaction meets digital sovereignty.
 
 ## 🧰 Technology Stack: Powering BlueSe
