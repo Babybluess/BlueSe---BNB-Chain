@@ -45,7 +45,7 @@ We are exploring AI integrations for content moderation and personalized content
 
 ## 🏆 Competitive Advantages Over Other Social DAOs
 
-
+![Screenshot 2025-05-28 233811](https://github.com/user-attachments/assets/9104fc2e-c498-4133-84b9-ffc45e285580)
 
 Why BlueSe Stands Out:
 Security-first architecture with secret keys + staking to ensure authenticity and discourage spam or abuse.
