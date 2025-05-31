@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.25;
+pragma solidity 0.8.28;
 
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract BlueSe {
-    ERC20 _token;
     using Counters for Counters.Counter;
 
     Counters.Counter public  _likeAmount;
@@ -14,6 +13,11 @@ contract BlueSe {
     Counters.Counter public  memberAmount;
 
     address public creator;
+    address public vnst = 0xFBF7B3Cf3938A29099F76e511dE96a7e316Fdf33;
+
+    uint256 constant benchmark_post = 30;
+    uint256 constant benchmark_comment= 15;
+    uint256 constant benchmark_like = 5;
 
     constructor() {
         creator = msg.sender;
@@ -59,7 +63,7 @@ contract BlueSe {
     FriendRequest[] public friendRequests;
     address[] public memberAddress;
 
-    uint256 private stakingFee = 1;
+    uint256 private stakingFee = 10 ** 18;
 
     modifier onlyCreator() {
         require(
@@ -69,8 +73,8 @@ contract BlueSe {
         _;
     }
 
-     modifier checkAllowance() {
-        require(_token.allowance(msg.sender, address(this)) >= stakingFee, "Banlance is not enough");
+    modifier checkAllowance() {
+        require(IERC20(vnst).allowance(msg.sender, address(this)) >= stakingFee, "Banlance is not enough");
         _;
     }
 
@@ -82,8 +86,9 @@ contract BlueSe {
     event ReplyMessage(address _sender, address _receiver, string _context, bool _isRead);
     event AddFriend(address _sender, address _receiver);
     event AceptRequest(address _sender);
+    event ClaimReward(uint256 _postIndex, address owner, uint256 reward);
 
-    function createPost(string memory _context, string calldata _caption, string memory _type) public  {
+    function createPost(string memory _context, string calldata _caption, string memory _type) public checkAllowance {
         require(msg.sender != address(0), "Address is not valid");
 
         _idPost.increment();
@@ -101,12 +106,12 @@ contract BlueSe {
             })
         );
 
-        // _token.transferFrom(msg.sender, address(this), stakingFee);
+        IERC20(vnst).transferFrom(msg.sender, address(this), stakingFee);
 
         emit CreatePost( idCurrent, _context, _caption, payable (msg.sender), _type, 0, 0, new address[](0), new address[](0));
     }
 
-    function commentPost(uint256 _id, string memory _context, address _replyPers) public {
+    function commentPost(uint256 _id, string memory _context, address _replyPers) public checkAllowance {
          require(msg.sender != address(0), "Address is not valid");
          require(0 <= _id && _id < posts.length, "Post is not exist");
 
@@ -125,12 +130,12 @@ contract BlueSe {
 
         posts[_id].totalComment = commentAmount;
 
-        // _token.transferFrom(msg.sender, address(this), stakingFee);
+        IERC20(vnst).transferFrom(msg.sender, address(this), stakingFee);
 
          emit CommentPost(_id, payable (msg.sender), _context, _replyPers);
     }
 
-    function likePost(uint256 _id) public {
+    function likePost(uint256 _id) public checkAllowance {
         require(!isLiked[msg.sender][_id], "You have liked post");
 
         _likeAmount.increment();
@@ -140,6 +145,8 @@ contract BlueSe {
         likeList[_id].push(msg.sender);
 
         posts[_id].totalLike = likeAmount;
+
+        IERC20(vnst).transferFrom(msg.sender, address(this), stakingFee);
 
         emit LikePost(_id);
     }
@@ -291,6 +298,16 @@ contract BlueSe {
         require( 0 <= _id && _id < posts.length, "Post is not exist" );
 
         delete posts[_id];
+    }
+
+    function claimReward(uint256 postIndex) public payable {
+        Post storage post = posts[postIndex];
+        require(post.owner == msg.sender, "You are not post's owner");
+
+        uint256 earningReward = stakingFee * (post.totalLike * benchmark_like + post.totalComment * benchmark_comment + benchmark_post);     
+        require(IERC20(vnst).transfer(msg.sender, earningReward), "Fail to claim reward");   
+
+        emit ClaimReward(postIndex, msg.sender, earningReward);
     }
 
     function getAllMember() public view returns ( address[] memory) {
